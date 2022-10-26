@@ -2,6 +2,7 @@ package com.hms.util;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -26,9 +27,6 @@ public class FileOperations {
             if (source.isDirectory()) {
                 copyFolder(sourcePath, targetPath);
                 return;
-            }
-            if (isAbsolutePath(targetPath)) {
-
             }
             copyFile(sourcePath, targetPath);
         } catch (Exception e) {
@@ -202,5 +200,28 @@ public class FileOperations {
     private boolean isAbsolutePath(String path) {
         return new File(path.charAt(0) + ":\\").exists();
     }
+
+    /**
+     * @param deletePath
+     */
+    public void deleteFolder(String deletePath) {
+        try {
+            Path path = Paths.get(deletePath);
+            // 删除文件或空文件夹
+            boolean result = Files.deleteIfExists(path);
+            /*
+                判断是否是文件夹、是否是文件、
+             */
+            if (result) {
+                System.out.println("删除成功");
+            } else {
+                System.out.println("删除失败");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
 }
