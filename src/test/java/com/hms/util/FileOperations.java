@@ -2,45 +2,76 @@ package com.hms.util;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
  * 文件操作：复制、删除、剪切、读取、修改、检索
  */
 public class FileOperations {
-
-    private static int index;
-
     /**
      * 复制文件(使用缓冲字节流)
      *
-     * @param sourceAbsolutePath 源文件或源文件夹的绝对路径
-     * @param pasteLocation      粘贴位置
+     * @param sourcePath 源文件或源文件夹的绝对路径
+     * @param targetPath 粘贴位置
      */
-    public static void copy(String sourceAbsolutePath, String pasteLocation) throws Exception {
-        if (new File(sourceAbsolutePath).isDirectory()) {
-            copyFolder(sourceAbsolutePath, pasteLocation);
-            return;
+    public void copy(String sourcePath, String targetPath) {
+        try {
+            if (!(isValidFileName(sourcePath) && isValidFileName(targetPath))) {
+                throw new Exception("文件名不合法！！！");
+            }
+            File source = new File(sourcePath);
+            if (!source.exists()) {
+                throw new Exception("源文件不存在");
+            }
+            if (source.isDirectory()) {
+                copyFolder(sourcePath, targetPath);
+                return;
+            }
+            if (isAbsolutePath(targetPath)) {
+
+            }
+            copyFile(sourcePath, targetPath);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        copyFile(sourceAbsolutePath, pasteLocation);
     }
 
     /**
      * 复制单个文件(使用缓冲字节流)
      *
-     * @param sourceFileAbsolutePath 源文件绝对路径
-     * @param pasteLocation          粘贴位置
+     * @param sourcePath 源文件路径
+     * @param targetPath 粘贴位置(不能是目录)
      */
-    private static void copyFile(String sourceFileAbsolutePath, String pasteLocation) {
-        File file = new File(sourceFileAbsolutePath);
-        File movePath = new File(pasteLocation);
-        //如果是文件则复制文件
+    private void copyFile(String sourcePath, String targetPath) throws Exception {
+        File source = new File(sourcePath);
+        File target = new File(targetPath);
+        /*
+            targetPath 为绝对路径时：如果父目录不存在则创建。
+            targetPath 为相对路径时：以绝对路径创建 File 对象。
+         */
+        if (isAbsolutePath(targetPath)) {
+            String path;
+            int slashIndex = targetPath.lastIndexOf("\\");
+            int backSlashIndex = targetPath.lastIndexOf("/");
+            if (slashIndex > backSlashIndex) {
+                path = targetPath.substring(0, slashIndex);
+            } else {
+                path = targetPath.substring(0, backSlashIndex);
+            }
+            Files.createDirectories(Paths.get(path)).toFile();
+        } else {
+            target = new File(System.getProperty("user.dir") + "\\" + targetPath);
+        }
+
+        if (target.isDirectory()) {
+            throw new Exception("目标位置不能是目录");
+        }
         BufferedInputStream in = null;
         BufferedOutputStream out = null;
         try {
-            in = new BufferedInputStream(new FileInputStream(file));
-            out = new BufferedOutputStream(new FileOutputStream(movePath));
+
+            in = new BufferedInputStream(new FileInputStream(source));
+            out = new BufferedOutputStream(new FileOutputStream(target));
             byte[] b = new byte[1024];
             int temp = 0;
             while ((temp = in.read(b)) != -1) {
@@ -79,47 +110,22 @@ public class FileOperations {
      * 不允许这样操作，直接抛出异常。Windows系统自带的复制也存在这个问题：目标文件夹是源文件夹的子文件夹.
      * <p>
      *
-     * @param sourceAbsolutePath 源文件夹绝对路径
-     * @param pasteLocation      粘贴位置。注：粘贴位置不存在会自动创建（斜杠与反斜杠视为多级目录），粘贴位置不能是源文件夹的子目录。
+     * @param sourcePath    源文件夹绝对路径
+     * @param pasteLocation 粘贴目标文件夹。注：粘贴位置不存在会自动创建（斜杠与反斜杠视为多级目录），粘贴位置不能是源文件夹的子目录。
      */
-    public static void copyFolder(String sourceAbsolutePath, String pasteLocation) throws Exception {
-        if (index > 3) {
-            return;
-        }
-
-        //源文件夹
-        File sourceFile = new File(sourceAbsolutePath);
-
-        Path path = Paths.get(pasteLocation);
-        //目标文件夹，不存会自动创建
-        File targetFile = new File(Files.createDirectories(path).toFile().getAbsolutePath());
-
-
-        // 文件名不能包含下列字符
-        if (!(isValidFileName(sourceFile.getName()) && isValidFileName(targetFile.getName()))) {
-            System.out.println(sourceFile.getName() + "和" + targetFile.getName());
-            throw new Exception("文件名不能为空也不能包含下列字符:\\/:*?\"<>|");
-        }
-
-        if (targetFile.getParentFile().equals(sourceFile)) {
-            throw new Exception("目标文件夹不允许是源文件夹的子文件夹");
-        }
-
-        if (!sourceFile.exists()) {
-            throw new Exception("源文件夹不存在");
-        }
-        if (!sourceFile.isDirectory()) {
-            throw new Exception("源文件夹不是目录");
-        }
-
-        if (targetFile.getParentFile().equals(sourceFile)) {
-            throw new Exception("目标文件夹不允许是源文件夹的子文件夹");
-        }
+    private void copyFolder(String sourcePath, String pasteLocation) throws Exception {
+        // 源和目标文件夹，目标文件夹不存在则创建
+        File sourceFile = new File(new File(sourcePath).getAbsolutePath());
+        File targetFile = new File(Files.createDirectories(Paths.get(pasteLocation)).toFile().getAbsolutePath());
 
         if (!targetFile.isDirectory()) {
             throw new Exception("目标文件夹不是目录");
+        } else if (isOffspring(sourceFile, targetFile)) {
+            throw new Exception("目标文件夹不允许是源文件夹的子文件夹");
+        } else if (sourceFile.equals(targetFile)) {
+            throw new Exception("目标文件夹不允许是源文件夹");
         }
-
+        // 获取源文件夹下所有文件和目录
         File[] files = sourceFile.listFiles();
         if (files == null || files.length == 0) {
             return;
@@ -130,7 +136,6 @@ public class FileOperations {
             if (file.isDirectory()) {
                 //如果是目录则递归调用
                 copyFolder(file.getAbsolutePath(), pastePath);
-                index++;
             } else {
                 //如果是文件则复制文件
                 copyFile(file.getAbsolutePath(), pastePath);
@@ -140,36 +145,62 @@ public class FileOperations {
 
     /**
      * 文件名是否合法
-     * <p>
-     * 文件名不能包含下列字符：\/:*?"<>|
      *
-     * @param fileName 文件名
+     * @param filePath 文件名
      * @return 文件名是否合法
      */
-    public static boolean isValidFileName(String fileName) {
+    public boolean isValidFileName(String filePath) {
 
-        if (fileName == null || fileName.trim().length() == 0 || fileName.length() > 255) {
+        // Windows10 以前版本对最大路径限制为260个字符，Windows10可以修改注册表取消最大路径限制
+        if (filePath == null || filePath.trim().length() == 0 || filePath.length() > 255) {
             return false;
         }
-
-        // Windows绝对路径：1.第一个字符是字母   2.第二个字符是冒号  3.第三个字符是斜杠或反斜杠,后面字符排除  :*?\"<>|
-        if (fileName.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)")) {
+        /*
+           是否是绝对路径且合法
+           Windows绝对路径：1.第一个字符是盘符（是否存在）   2.第二个字符是冒号  3.第三个字符是斜杠或反斜杠,后面字符排除  :*?\"<>|
+         */
+        if (isAbsolutePath(filePath) && filePath.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)")) {
             return true;
         }
-
-        if (fileName.matches("[\\\\/:*?\"<>|]")) {
-
+        if (!isAbsolutePath(filePath)) {
+            // 获取绝对路径：项目运行目录\文件名
+            filePath = System.getProperty("user.dir") + "\\" + filePath;
+            if (filePath.length() > 255) {
+                return false;
+            }
         }
+        // 绝对路径是否合法。
+        return filePath.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)");
+    }
 
+    /**
+     * 目标目录是否是源目录的子目录
+     *
+     * @param sourceFile 源目录
+     * @param targetFile 目标目录
+     * @return 目标目录是否是源目录的子目录
+     */
+    public boolean isOffspring(File sourceFile, File targetFile) {
+        File[] files = sourceFile.listFiles();
+        if (files == null) {
+            return false;
+        }
+        for (File file : files) {
+            if (file.equals(targetFile)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-//        String regEx = "[\\\\/:*?\"<>|]";
-//        Pattern p = Pattern.compile(regEx);
-//        Matcher m = p.matcher(fileName);
-
-
-        //return !fileName.matches("[\\\\/:*?\"<>|]");
-        //return fileName.matches("([a-zA-z]:)([/|\\\\]((?![:*?\"<>|]).))*$");
-        return fileName.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)");
+    /**
+     * 是否是绝对路径
+     *
+     * @param path 路径
+     * @return 是否是绝对路径
+     */
+    private boolean isAbsolutePath(String path) {
+        return new File(path.charAt(0) + ":\\").exists();
     }
 
 }

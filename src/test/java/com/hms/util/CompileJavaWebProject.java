@@ -26,7 +26,7 @@ public class CompileJavaWebProject {
 
         //将 src\webapp 目录内容，同步到 target\应用名称 目录下
         //copyFolder("F:\\HMS\\Desktop\\testBuid\\src\\main\\webapp", "F:\\HMS\\Desktop\\testBuid\\target\\pc");
-        FileOperations.copyFolder("", outputDirectory);
+       // FileOperations.copyFolder("", outputDirectory);
         //将 src\main\resources 目录内容，同步到 target\应用名称\WEB-INF\classes 文件夹
         // copyFolder("F:\\HMS\\Desktop\\testBuid\\src\\main\\resources", "F:\\HMS\\Desktop\\testBuid\\target\\pc\\WEB-INF\\classes");
         //将 指定的jar包目录内容，同步到 target\应用名称\WEB-INF\lib 文件夹
