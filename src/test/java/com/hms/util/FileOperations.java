@@ -152,9 +152,9 @@ public class FileOperations {
             return false;
         }
 
-        // Windows绝对路径：1.第一个字符是字母   2.第二个字符是冒号  3.第三个字符是斜杠或反斜杠 4.后面不管通通匹配
-        if (fileName.matches("[a-zA-z]:[/|\\\\][\\s\\S]*")) {
-
+        // Windows绝对路径：1.第一个字符是字母   2.第二个字符是冒号  3.第三个字符是斜杠或反斜杠,后面字符排除  :*?\"<>|
+        if (fileName.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)")) {
+            return true;
         }
 
         if (fileName.matches("[\\\\/:*?\"<>|]")) {
@@ -168,7 +168,8 @@ public class FileOperations {
 
 
         //return !fileName.matches("[\\\\/:*?\"<>|]");
-        return fileName.matches("^([a-zA-z]:)([/|\\\\]((?![:*?\"<>|]).))*$");
+        //return fileName.matches("([a-zA-z]:)([/|\\\\]((?![:*?\"<>|]).))*$");
+        return fileName.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)");
     }
 
 }

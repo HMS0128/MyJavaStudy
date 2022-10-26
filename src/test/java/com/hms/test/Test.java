@@ -3,7 +3,7 @@ package com.hms.test;
 import com.hms.util.FileOperations;
 
 public class Test {
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         try {
             //
             //System.out.println(new File("F:\\HMS\\Desktop\\MyJavaStudy\\src").isDirectory());
@@ -16,8 +16,8 @@ public class Test {
 //            String str = "1\"";
 //            Matcher m = p.matcher(str);
 
-           // System.out.println(System.getProperty("user.dir"));
-            System.out.println(FileOperations.isValidFileName("a:\\23"));
+            // System.out.println(System.getProperty("user.dir"));
+            System.out.println(FileOperations.isValidFileName("a:/12/\\2323\\2*"));
 
 
         } catch (Exception e) {
