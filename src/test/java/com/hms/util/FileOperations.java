@@ -5,38 +5,55 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * 文件操作：复制、删除、剪切、读取、修改、检索
+ * 文件操作：复制、删除、剪切、检索、读取、修改
  */
 public class FileOperations {
     /**
-     * 复制文件(使用缓冲字节流)
+     * 作用：复制单个文件或复制整个文件夹的内容(使用缓冲字节流)
+     * <p>
+     * 说明：源是文件夹时，目标也认定为文件夹。源是单个文件时，目标也认定为单个文件
      *
-     * @param sourcePath 源文件或源文件夹的绝对路径
-     * @param targetPath 粘贴位置
+     * @param sourcePath 源路径
+     * @param targetPath 目标路径（不存在会创建）。
      */
-    public void copy(String sourcePath, String targetPath) {
+    public boolean copy(String sourcePath, String targetPath) {
         try {
             if (!(isValidFileName(sourcePath) && isValidFileName(targetPath))) {
-                throw new Exception("文件名不合法！！！");
+                System.out.println("文件名不合法！！！");
+                return false;
             }
+
             File source = new File(sourcePath);
-            if (!source.exists()) {
-                throw new Exception("源文件不存在");
+            File target = new File(targetPath);
+
+            if (source.exists()) {
+                if (!isAbsolutePath(sourcePath)) {
+                    source = new File(source.getAbsolutePath());
+                }
+            } else {
+                System.out.println("文件：" + source + "  不存在！！！");
+                return false;
             }
+
+            // 源是文件夹时，目标认定为文件夹。源是单个文件时，目标认定为单个文件
             if (source.isDirectory()) {
-                copyFolder(sourcePath, targetPath);
-                return;
+
+                copyFolder(source, target);
+            } else if (source.isFile()) {
+                copyFile(source, target);
             }
-            copyFile(sourcePath, targetPath);
+
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
     /**
      * 删除文件
      *
-     * @param path 文件路径
+     * @param path 单个文件路径或文件夹路径
      * @return 是否删除成功
      */
     public boolean deleteFile(String path) {
@@ -44,6 +61,7 @@ public class FileOperations {
             System.out.println("文件名不合法!!!");
             return false;
         }
+
         File files = new File(path);
         if (!files.exists()) {
             if (isAbsolutePath(path)) {
@@ -53,6 +71,7 @@ public class FileOperations {
             }
             return false;
         }
+
         if (files.isFile()) {
             return files.delete();
         } else {
@@ -68,43 +87,71 @@ public class FileOperations {
     }
 
     /**
+     * 作用：剪切单个文件或整个文件夹
+     * <p>
+     * 思路：先复制，复制成功后执行删除。
+     *
+     * @param source 源单个文件或文件夹的路径
+     * @param target 目标单个文件或文件夹的路径
+     * @return 是否剪切成功
+     */
+    public boolean cut(String source, String target) {
+        if (copy(source, target)) {
+            return deleteFile(source);
+        }
+        return false;
+    }
+
+    /**
+     * 作用：根据文件名称模糊查询出目录中匹配的文件。
+     * <p>
+     * 思路：1、遍历目录，如果匹配就打印出来
+     *
+     * @param directory 目录
+     * @param filName   条件
+     */
+    public void searchByFileName(String directory, String filName) {
+        if (!isValidFileName(directory)) {
+            System.out.println("目录不合法！！！");
+            return;
+        }
+        File dir = new File(directory);
+        if (!dir.exists()) {
+            System.out.println("目录不存在！！！");
+            return;
+        }
+        if (!dir.isDirectory()) {
+            System.out.println("不是一个目录！！！");
+            return;
+        }
+        File[] files = dir.listFiles();
+        assert files != null;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                searchByFileName(file.getAbsolutePath(), filName);
+            } else if (file.getName().contains(filName)) {
+                System.out.println(file.getAbsolutePath());
+            }
+        }
+    }
+
+    /**
      * 复制单个文件(使用缓冲字节流)
      *
-     * @param sourcePath 源文件路径
-     * @param targetPath 粘贴位置(不能是目录)
+     * @param source 源文件路径
+     * @param target 粘贴位置(是一个具体的文件)，不存在会创建。
      */
-    private void copyFile(String sourcePath, String targetPath) throws Exception {
-        File source = new File(sourcePath);
-        File target = new File(targetPath);
-        /*
-            targetPath 为绝对路径时：如果父目录不存在则创建。
-            targetPath 为相对路径时：以绝对路径创建 File 对象。
-         */
-        if (isAbsolutePath(targetPath)) {
-            String path;
-            int slashIndex = targetPath.lastIndexOf("\\");
-            int backSlashIndex = targetPath.lastIndexOf("/");
-            if (slashIndex > backSlashIndex) {
-                path = targetPath.substring(0, slashIndex);
-            } else {
-                path = targetPath.substring(0, backSlashIndex);
-            }
-            Files.createDirectories(Paths.get(path)).toFile();
-        } else {
-            target = new File(System.getProperty("user.dir") + "\\" + targetPath);
-        }
-
+    private void copyFile(File source, File target) throws Exception {
         if (target.isDirectory()) {
-            throw new Exception("目标位置不能是目录");
+            throw new Exception(target + " 是一个文件夹");
         }
         BufferedInputStream in = null;
         BufferedOutputStream out = null;
         try {
-
             in = new BufferedInputStream(new FileInputStream(source));
             out = new BufferedOutputStream(new FileOutputStream(target));
             byte[] b = new byte[1024];
-            int temp = 0;
+            int temp;
             while ((temp = in.read(b)) != -1) {
                 out.write(b, 0, temp);
             }
@@ -141,21 +188,24 @@ public class FileOperations {
      * 不允许这样操作，直接抛出异常。Windows系统自带的复制也存在这个问题：目标文件夹是源文件夹的子文件夹.
      * <p>
      *
-     * @param sourcePath    源文件夹绝对路径
-     * @param pasteLocation 粘贴目标文件夹。注：粘贴位置不存在会自动创建（斜杠与反斜杠视为多级目录），粘贴位置不能是源文件夹的子目录。
+     * @param sourceFile 源文件夹绝对路径
+     * @param targetFile 粘贴目标文件夹。注：粘贴位置不存在会自动创建（斜杠与反斜杠视为多级目录），粘贴位置不能是源文件夹的子目录。
      */
-    private void copyFolder(String sourcePath, String pasteLocation) throws Exception {
-        // 源和目标文件夹，目标文件夹不存在则创建
-        File sourceFile = new File(new File(sourcePath).getAbsolutePath());
-        File targetFile = new File(Files.createDirectories(Paths.get(pasteLocation)).toFile().getAbsolutePath());
+    private void copyFolder(File sourceFile, File targetFile) throws Exception {
+        if (targetFile.isFile()) {
+            throw new Exception("目标不能是一个文件");
+        }
+        // 目标文件不存在则创建
+        Files.createDirectories(Paths.get(targetFile.getAbsolutePath()));
 
         if (!targetFile.isDirectory()) {
-            throw new Exception("目标文件夹不是目录");
+            throw new Exception("目标不是目录");
         } else if (isOffspring(sourceFile, targetFile)) {
             throw new Exception("目标文件夹不允许是源文件夹的子文件夹");
         } else if (sourceFile.equals(targetFile)) {
             throw new Exception("目标文件夹不允许是源文件夹");
         }
+
         // 获取源文件夹下所有文件和目录
         File[] files = sourceFile.listFiles();
         if (files == null || files.length == 0) {
@@ -163,13 +213,13 @@ public class FileOperations {
         }
         for (File file : files) {
             // 文件要粘贴位置
-            String pastePath = targetFile.getAbsolutePath() + "\\" + file.getName();
+            File pastePath = new File(targetFile.getAbsolutePath() + "\\" + file.getName());
             if (file.isDirectory()) {
                 //如果是目录则递归调用
-                copyFolder(file.getAbsolutePath(), pastePath);
+                copyFolder(file, pastePath);
             } else {
                 //如果是文件则复制文件
-                copyFile(file.getAbsolutePath(), pastePath);
+                copyFile(file, pastePath);
             }
         }
     }
@@ -180,7 +230,7 @@ public class FileOperations {
      * @param filePath 文件名
      * @return 文件名是否合法
      */
-    public boolean isValidFileName(String filePath) {
+    private boolean isValidFileName(String filePath) {
 
         // Windows10 以前版本对最大路径限制为260个字符，Windows10可以修改注册表取消最大路径限制
         if (filePath == null || filePath.trim().length() == 0 || filePath.length() > 255) {
@@ -193,7 +243,11 @@ public class FileOperations {
         if (isAbsolutePath(filePath) && filePath.matches("([a-zA-z][:])([/|\\\\][^:*?\"<>|]*)")) {
             return true;
         }
+        // 相对路径不能以 / 和 \ 开头
         if (!isAbsolutePath(filePath)) {
+            if (filePath.charAt(0) == '/' || filePath.charAt(0) == '\\') {
+                return false;
+            }
             // 获取绝对路径：项目运行目录\文件名
             filePath = System.getProperty("user.dir") + "\\" + filePath;
             if (filePath.length() > 255) {
@@ -211,7 +265,7 @@ public class FileOperations {
      * @param targetFile 目标目录
      * @return 目标目录是否是源目录的子目录
      */
-    public boolean isOffspring(File sourceFile, File targetFile) {
+    private boolean isOffspring(File sourceFile, File targetFile) {
         File[] files = sourceFile.listFiles();
         if (files == null) {
             return false;
