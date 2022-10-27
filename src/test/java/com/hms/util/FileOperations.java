@@ -45,8 +45,12 @@ public class FileOperations {
             return false;
         }
         File files = new File(path);
-        // 文件不存在，则退出
         if (!files.exists()) {
+            if (isAbsolutePath(path)) {
+                System.out.println("文件：" + files.getPath() + "  不存在！！！");
+            } else {
+                System.out.println("文件：" + System.getProperty("user.dir") + "\\" + files.getPath() + "  不存在！！！");
+            }
             return false;
         }
         if (files.isFile()) {

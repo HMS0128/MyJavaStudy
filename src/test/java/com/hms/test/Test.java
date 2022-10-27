@@ -6,6 +6,7 @@ public class Test {
     public static void main(String[] args) {
         FileOperations fo = new FileOperations();
         //fo.copy("src","2");
-        fo.deleteFile("2");
+
+        System.out.println(fo.deleteFile("2"));
     }
 }
