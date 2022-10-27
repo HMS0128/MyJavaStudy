@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * 文件操作：复制、删除、剪切、检索、读取、修改
+ * 文件操作：复制、删除、剪切、搜索、修改
  */
 public class FileOperations {
     /**
@@ -105,7 +105,7 @@ public class FileOperations {
     /**
      * 作用：根据文件名称模糊查询出目录中匹配的文件。
      * <p>
-     * 思路：1、遍历目录，如果匹配就打印出来
+     * 思路：遍历目录，如果匹配就打印出来
      *
      * @param directory 目录
      * @param filName   条件
@@ -125,7 +125,9 @@ public class FileOperations {
             return;
         }
         File[] files = dir.listFiles();
-        assert files != null;
+        if (files == null || files.length == 0) {
+            return;
+        }
         for (File file : files) {
             if (file.isDirectory()) {
                 searchByFileName(file.getAbsolutePath(), filName);
