@@ -2,7 +2,6 @@ package com.hms.util;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -32,6 +31,36 @@ public class FileOperations {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param path 文件路径
+     * @return 是否删除成功
+     */
+    public boolean deleteFile(String path) {
+        if (!isValidFileName(path)) {
+            System.out.println("文件名不合法!!!");
+            return false;
+        }
+        File files = new File(path);
+        // 文件不存在，则退出
+        if (!files.exists()) {
+            return false;
+        }
+        if (files.isFile()) {
+            return files.delete();
+        } else {
+            File[] listFiles = files.listFiles();
+            if (listFiles == null) {
+                return false;
+            }
+            for (File file : listFiles) {
+                deleteFile(file.getPath());
+            }
+        }
+        return files.delete();
     }
 
     /**
@@ -199,28 +228,6 @@ public class FileOperations {
      */
     private boolean isAbsolutePath(String path) {
         return new File(path.charAt(0) + ":\\").exists();
-    }
-
-    /**
-     * @param deletePath
-     */
-    public void deleteFolder(String deletePath) {
-        try {
-            Path path = Paths.get(deletePath);
-            // 删除文件或空文件夹
-            boolean result = Files.deleteIfExists(path);
-            /*
-                判断是否是文件夹、是否是文件、
-             */
-            if (result) {
-                System.out.println("删除成功");
-            } else {
-                System.out.println("删除失败");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
 
