@@ -3,11 +3,15 @@ package com.hms.util;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 /**
  * 文件操作：复制、删除、剪切、搜索、修改
  */
 public class FileOperations {
+
+    private ArrayList<File> allFileInDirectory = new ArrayList<File>();
+
     /**
      * 作用：复制单个文件或复制整个文件夹的内容(使用缓存字节流)
      * <p>
@@ -326,42 +330,98 @@ public class FileOperations {
     }
 
     /**
-     * 向文件中追加内容到新行
+     * 向文件中追加内容到新行（BufferedWriter）
      *
      * @param filePath 文件路径
+     * @param content  追加的内容
      */
-    public void appendFile(String filePath) {
-        FileWriter fw = null;
-        PrintWriter pw = null;
+    public void appendFile(String filePath, String content) {
+        BufferedWriter bufferedWriter = null;
         try {
             File file = new File(filePath);
-            fw = new FileWriter(file, true);
-            pw = new PrintWriter(fw);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
             if (isExistNewline(file)) {
-                pw.append("Hello\r\n");
-                System.out.println("结尾存在换行或回车");
+                bufferedWriter.write(content + "\r\n");
             } else {
-                pw.append("\r\nHello\r\n");
-                System.out.println("结尾不存在换行或回车");
+                bufferedWriter.write("\r\n" + content + "\r\n");
             }
-            pw.flush();
-            fw.flush();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                assert fw != null;
-                fw.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                assert pw != null;
-                pw.close();
-            } catch (Exception e) {
+                assert bufferedWriter != null;
+                bufferedWriter.close();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
+
+    /**
+     * 作用：根据指定字符串，查找指定文件中是否包含该字符串，出现在第几行。
+     * <p>
+     * 思路：遍历出所有文件，挨个读取文件内容查找字符串是否出现，出现在第几行。
+     *
+     * @param path    文件路径
+     * @param content 查找的内容
+     * @return 返回包含查找内容的所有行的数组
+     */
+    public int[] findFileContent(String path, String content) {
+        if (!isValidFileName(path)) {
+            System.out.println("文件名:" + path + "  不合法！！！");
+            return null;
+        }
+        File file = new File(path);
+        if (!file.exists()) {
+            System.out.println("文件:" + path + "  不存在！！！");
+            return null;
+        }
+        if (file.isDirectory()) {
+            System.out.println("文件:" + path + "  是一个目录，而不是具体的文件！！！");
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * 获取指定目录下的文件及子孙目录下的文件（排除所有文件夹本身）。
+     *
+     * @param directoryPath 目录位置
+     * @return 所有文件
+     */
+    public ArrayList<File> getAllFileInDirectory(String directoryPath) {
+
+        if (!isValidFileName(directoryPath)) {
+            System.out.println("目录名:" + directoryPath + "  不合法！！！");
+        }
+        File dir = new File(directoryPath);
+        if (!dir.exists()) {
+            System.out.println("目录:" + directoryPath + "  不存在！！！");
+        }
+        if (dir.isFile()) {
+            System.out.println(directoryPath + "  是一个文件，而不是一个目录！！！");
+        }
+
+        File[] files = dir.listFiles();
+        // 递归结束条件
+        if (files == null || files.length == 0) {
+            return allFileInDirectory;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                getAllFileInDirectory(file.getAbsolutePath());
+            } else {
+                System.out.println(file.getAbsolutePath());
+                allFileInDirectory.add(file);
+            }
+        }
+        return allFileInDirectory;
+    }
+
+    /**
+     * 作用：根据指定字符串，查找指定目录中有那些文件中包含该字符串，出现在第几行。
+     *<p>
+     * 思路：遍历出所有文件，挨个读取文件内容查找字符串是否出现，出现在第几行，打印出来。
+     */
 
 }
