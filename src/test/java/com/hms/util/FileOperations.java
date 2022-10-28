@@ -413,22 +413,10 @@ public class FileOperations {
      * @return 所有文件
      */
     public ArrayList<File> getAllFileInDirectory(String directoryPath) {
-
-        if (!isValidFileName(directoryPath)) {
-            System.out.println("目录名:" + directoryPath + "  不合法！！！");
+        if (!isValidDirectory(directoryPath)) {
             return null;
         }
-        File dir = new File(directoryPath);
-        if (!dir.exists()) {
-            System.out.println("目录:" + directoryPath + "  不存在！！！");
-            return null;
-        }
-        if (dir.isFile()) {
-            System.out.println(directoryPath + "  是一个文件，而不是一个目录！！！");
-            return null;
-        }
-
-        File[] files = dir.listFiles();
+        File[] files = new File(directoryPath).listFiles();
         // 递归结束条件
         if (files == null || files.length == 0) {
             return allFileInDirectory;
@@ -452,22 +440,10 @@ public class FileOperations {
      * @return 所有文件
      */
     public ArrayList<File> getAllFileInDirectory(String directoryPath, String fileNameExtension) {
-
-        if (!isValidFileName(directoryPath)) {
-            System.out.println("目录名:" + directoryPath + "  不合法！！！");
+        if (!isValidDirectory(directoryPath)) {
             return null;
         }
-        File dir = new File(directoryPath);
-        if (!dir.exists()) {
-            System.out.println("目录:" + directoryPath + "  不存在！！！");
-            return null;
-        }
-        if (dir.isFile()) {
-            System.out.println(directoryPath + "  是一个文件，而不是一个目录！！！");
-            return null;
-        }
-
-        File[] files = dir.listFiles();
+        File[] files = new File(directoryPath).listFiles();
         // 递归结束条件
         if (files == null || files.length == 0) {
             return allFileInDirectory;
@@ -476,10 +452,10 @@ public class FileOperations {
             if (file.isDirectory()) {
                 getAllFileInDirectory(file.getAbsolutePath(), fileNameExtension);
             } else {
-                if (file.getAbsolutePath().contains(fileNameExtension)) {
+                String fileName = file.getName();
+                if (fileName.substring(fileName.lastIndexOf(".") + 1).equals(fileNameExtension)) {
                     allFileInDirectory.add(file);
                 }
-
             }
         }
         return allFileInDirectory;
@@ -520,5 +496,27 @@ public class FileOperations {
             result.add(findFileContent(file.getAbsolutePath(), content));
         }
         return result;
+    }
+
+    /**
+     * 判断给定的路径是否是一个合法且存在的目录
+     *
+     * @param directoryPath 目录路径
+     */
+    public boolean isValidDirectory(String directoryPath) {
+        if (!isValidFileName(directoryPath)) {
+            System.out.println("目录名: " + directoryPath + "  不合法！！！");
+            return false;
+        }
+        File dir = new File(directoryPath);
+        if (!dir.exists()) {
+            System.out.println("目录: " + directoryPath + "  不存在！！！");
+            return false;
+        }
+        if (dir.isFile()) {
+            System.out.println(directoryPath + "  是一个文件，而不是一个目录！！！");
+            return false;
+        }
+        return true;
     }
 }

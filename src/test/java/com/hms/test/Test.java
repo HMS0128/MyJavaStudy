@@ -3,6 +3,8 @@ package com.hms.test;
 
 import com.hms.util.FileOperations;
 
+import java.util.ArrayList;
+
 public class Test {
     public static void main(String[] args) {
         FileOperations fo = new FileOperations();
@@ -13,12 +15,17 @@ public class Test {
 //
 //        fo.appendFile("F:\\HMS\\Desktop\\hello.txt", "hello");
 //
-//        ArrayList<ArrayList<String>> arrayList = fo.findContentByDirectory("E:\\HMS", "main", "java");
-//        for (ArrayList<String> arrS : arrayList) {
-//            for (String str : arrS) {
-//                System.out.println(str);
-//            }
-//        }
+        ArrayList<ArrayList<String>> arrayList = fo.findContentByDirectory("E:\\HMS", "main", "java");
+        for (ArrayList<String> arrS : arrayList) {
+            for (String str : arrS) {
+                //System.out.println(str);
+            }
+        }
+//        File file=new File("E:\\file.doc");
+//        String fileName=file.getName();
+//        String fileTyle=fileName.substring(fileName.lastIndexOf(".")+1);
+//        System.out.println(fileTyle);
+
 
 
     }
