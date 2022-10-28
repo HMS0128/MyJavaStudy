@@ -9,7 +9,7 @@ import java.nio.file.Paths;
  */
 public class FileOperations {
     /**
-     * 作用：复制单个文件或复制整个文件夹的内容(使用缓冲字节流)
+     * 作用：复制单个文件或复制整个文件夹的内容(使用缓存字节流)
      * <p>
      * 说明：源是文件夹时，目标也认定为文件夹。源是单个文件时，目标也认定为单个文件
      *
@@ -138,7 +138,7 @@ public class FileOperations {
     }
 
     /**
-     * 复制单个文件(使用缓冲字节流)
+     * 复制单个文件(使用缓存字节流)
      *
      * @param source 源文件路径
      * @param target 粘贴位置(是一个具体的文件)，不存在会创建。
@@ -290,5 +290,78 @@ public class FileOperations {
         return new File(path.charAt(0) + ":\\").exists();
     }
 
+    /**
+     * 文件结尾是否存在换行或回车
+     *
+     * @param file 文件对象
+     * @return 文件结尾是否存在换行或回车
+     */
+    private boolean isExistNewline(File file) {
+        /*
+            RandomAccessFile实例：创建一个随机访问文件流读，随意写来，
+            参数一：指定一个文件对象。
+            参数二：
+            "r" 以只读方式打开。 调用结果对象的任何写入方法都将导致抛出 IOException。
+            "rw" 打开用于读写。 如果该文件尚不存在，则将尝试创建它。
+            "rws" 与 "rw" 一样，为读取和写入而打开，并且还要求对文件内容或元数据的每次更新都同步写入底层存储设备。
+            "rwd" 像 "rw" 一样打开读写，并且还要求对文件内容的每次更新都同步写入底层存储设备。
+         */
+        RandomAccessFile randomAccessFile;
+        try {
+            randomAccessFile = new RandomAccessFile(file, "r");
+            // 指针位置开始为0，所以最大长度为 length-1  （如：文件共10行，指针0~9，9指向最后一行）
+            long fileLastPointer = randomAccessFile.length() - 1;
+            // 设置文件指针偏移量，指向最后一行。
+            randomAccessFile.seek(fileLastPointer);
+            // 读取最后一行,第一个字符
+            int readByte = randomAccessFile.readByte();
+            // 结尾是否有换行或回车
+            if (0xA == readByte || 0xD == readByte) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * 向文件中追加内容到新行
+     *
+     * @param filePath 文件路径
+     */
+    public void appendFile(String filePath) {
+        FileWriter fw = null;
+        PrintWriter pw = null;
+        try {
+            File file = new File(filePath);
+            fw = new FileWriter(file, true);
+            pw = new PrintWriter(fw);
+            if (isExistNewline(file)) {
+                pw.append("Hello\r\n");
+                System.out.println("结尾存在换行或回车");
+            } else {
+                pw.append("\r\nHello\r\n");
+                System.out.println("结尾不存在换行或回车");
+            }
+            pw.flush();
+            fw.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                assert fw != null;
+                fw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                assert pw != null;
+                pw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }
