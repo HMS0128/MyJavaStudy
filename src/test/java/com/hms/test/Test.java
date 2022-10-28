@@ -15,8 +15,8 @@ public class Test {
         //fo.cut("1*", "F:\\HMS\\Desktop\\a");
         //fo.deleteFile("F:\\HMS\\Desktop\\test\\WorkorderController.java");
         //fo.searchByFileName("E:/", ".java");
-        //appendFile1Test("F:\\HMS\\Desktop\\hello.txt");
-        isRN(new File("F:\\HMS\\Desktop\\hello.txt"));
+        appendFile1Test("F:\\HMS\\Desktop\\hello.txt");
+        //isNewline(new File("F:\\HMS\\Desktop\\hello.txt"));
         //  https://blog.csdn.net/u011047968/article/details/107288140
     }
 
@@ -30,7 +30,11 @@ public class Test {
             File file = new File(path);
             fw = new FileWriter(file, true);
             pw = new PrintWriter(fw);
-            pw.append("Hello\r\n");
+            if (isNewline(file)) {
+                pw.append("Hello\r\n");
+            } else {
+                pw.append("\r\nHello\r\n");
+            }
             pw.flush();
             fw.flush();
         } catch (Exception e) {
@@ -51,7 +55,7 @@ public class Test {
         }
     }
 
-    public static boolean isRN(File file) {
+    public static boolean isNewline(File file) {
         /*
             RandomAccessFile实例：创建一个随机访问文件流读，随意写来，
             参数一：指定一个文件对象。
