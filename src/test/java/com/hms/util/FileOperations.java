@@ -10,7 +10,8 @@ import java.util.ArrayList;
  */
 public class FileOperations {
 
-    private ArrayList<File> allFileInDirectory = new ArrayList<File>();
+    // final修饰的引用数据类型不能改变引用地址，但可以改变引用的内容。
+    private final ArrayList<File> allFileInDirectory = new ArrayList<>();
 
     /**
      * 作用：复制单个文件或复制整个文件夹的内容(使用缓存字节流)
@@ -360,13 +361,13 @@ public class FileOperations {
     /**
      * 作用：根据指定字符串，查找指定文件中是否包含该字符串，出现在第几行。
      * <p>
-     * 思路：遍历出所有文件，挨个读取文件内容查找字符串是否出现，出现在第几行。
+     * 思路：使用 BufferedReader 读取文件，将查询结果保存在 ArrayList数组中。
      *
      * @param path    文件路径
      * @param content 查找的内容
      * @return 返回包含查找内容的所有行的数组
      */
-    public int[] findFileContent(String path, String content) {
+    public ArrayList<String> findFileContent(String path, String content) {
         if (!isValidFileName(path)) {
             System.out.println("文件名:" + path + "  不合法！！！");
             return null;
@@ -380,7 +381,29 @@ public class FileOperations {
             System.out.println("文件:" + path + "  是一个目录，而不是具体的文件！！！");
             return null;
         }
-        return null;
+        BufferedReader bufferedReader = null;
+        ArrayList<String> result = new ArrayList<>();
+        try {
+            bufferedReader = new BufferedReader(new FileReader(file));
+            String conStr;
+            int i = 0;
+            while ((conStr = bufferedReader.readLine()) != null) {
+                i++;
+                if (conStr.contains(content)) {
+                    result.add(content + " 出现在文件 " + path + "  第 " + i + " 行，该内容是：" + conStr);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                assert bufferedReader != null;
+                bufferedReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
     }
 
     /**
@@ -393,13 +416,16 @@ public class FileOperations {
 
         if (!isValidFileName(directoryPath)) {
             System.out.println("目录名:" + directoryPath + "  不合法！！！");
+            return null;
         }
         File dir = new File(directoryPath);
         if (!dir.exists()) {
             System.out.println("目录:" + directoryPath + "  不存在！！！");
+            return null;
         }
         if (dir.isFile()) {
             System.out.println(directoryPath + "  是一个文件，而不是一个目录！！！");
+            return null;
         }
 
         File[] files = dir.listFiles();
@@ -411,8 +437,49 @@ public class FileOperations {
             if (file.isDirectory()) {
                 getAllFileInDirectory(file.getAbsolutePath());
             } else {
-                System.out.println(file.getAbsolutePath());
                 allFileInDirectory.add(file);
+            }
+        }
+        return allFileInDirectory;
+    }
+
+
+    /**
+     * 获取指定目录下的文件及子孙目录下的文件中是指定拓展名的文件。
+     *
+     * @param directoryPath     目录位置
+     * @param fileNameExtension 文件拓展名
+     * @return 所有文件
+     */
+    public ArrayList<File> getAllFileInDirectory(String directoryPath, String fileNameExtension) {
+
+        if (!isValidFileName(directoryPath)) {
+            System.out.println("目录名:" + directoryPath + "  不合法！！！");
+            return null;
+        }
+        File dir = new File(directoryPath);
+        if (!dir.exists()) {
+            System.out.println("目录:" + directoryPath + "  不存在！！！");
+            return null;
+        }
+        if (dir.isFile()) {
+            System.out.println(directoryPath + "  是一个文件，而不是一个目录！！！");
+            return null;
+        }
+
+        File[] files = dir.listFiles();
+        // 递归结束条件
+        if (files == null || files.length == 0) {
+            return allFileInDirectory;
+        }
+        for (File file : files) {
+            if (file.isDirectory()) {
+                getAllFileInDirectory(file.getAbsolutePath(), fileNameExtension);
+            } else {
+                if (file.getAbsolutePath().contains(fileNameExtension)) {
+                    allFileInDirectory.add(file);
+                }
+
             }
         }
         return allFileInDirectory;
@@ -420,8 +487,38 @@ public class FileOperations {
 
     /**
      * 作用：根据指定字符串，查找指定目录中有那些文件中包含该字符串，出现在第几行。
-     *<p>
-     * 思路：遍历出所有文件，挨个读取文件内容查找字符串是否出现，出现在第几行，打印出来。
+     * <p>
+     * 思路：1、获取指定目录下的文件及子孙目录下的文件（排除所有文件夹本身）。2、获取每个文件的查询结果集。3、将每个文件的查询结果集保存在 ArrayList 数组中（二维数组）。
+     *
+     * @param path    目录位置
+     * @param content 查找内容
+     * @return 返回一个查找结果数组
      */
+    public ArrayList<ArrayList<String>> findContentByDirectory(String path, String content) {
+        ArrayList<ArrayList<String>> result = new ArrayList<>();
+        ArrayList<File> files = getAllFileInDirectory(path);
+        for (File file : files) {
+            result.add(findFileContent(file.getAbsolutePath(), content));
+        }
+        return result;
+    }
 
+    /**
+     * 作用：根据指定字符串，查找指定目录中指定后缀名的文件中那些文件中包含该字符串，出现在第几行。
+     * <p>
+     * 思路：1、获取指定目录下的文件及子孙目录下的文件（排除所有文件夹本身）。2、获取每个文件的查询结果集。3、将每个文件的查询结果集保存在 ArrayList 数组中（二维数组）。
+     *
+     * @param path              目录位置
+     * @param content           查找内容
+     * @param fileNameExtension 文件扩展名
+     * @return 返回一个查找结果数组
+     */
+    public ArrayList<ArrayList<String>> findContentByDirectory(String path, String content, String fileNameExtension) {
+        ArrayList<ArrayList<String>> result = new ArrayList<>();
+        ArrayList<File> files = getAllFileInDirectory(path, fileNameExtension);
+        for (File file : files) {
+            result.add(findFileContent(file.getAbsolutePath(), content));
+        }
+        return result;
+    }
 }
