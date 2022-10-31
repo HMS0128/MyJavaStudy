@@ -44,7 +44,6 @@ public class FileOperations {
 
             // 源是文件夹时，目标认定为文件夹。源是单个文件时，目标认定为单个文件
             if (source.isDirectory()) {
-
                 copyFolder(source, target);
             } else if (source.isFile()) {
                 copyFile(source, target);
@@ -58,39 +57,36 @@ public class FileOperations {
     }
 
     /**
-     * 删除文件
+     * 删除文件或文件夹
      *
      * @param path 单个文件路径或文件夹路径
      * @return 是否删除成功
      */
     public boolean deleteFile(String path) {
-        if (!isValidFileName(path)) {
-            System.out.println("文件名不合法!!!");
-            return false;
+
+        File file = new File(path);
+        File[] files = null;
+
+        if (file.isDirectory()) {
+            files = file.listFiles();
+            assert files != null;
+            for (File f : files) {
+                deleteFile(f.getAbsolutePath());
+            }
         }
 
-        File files = new File(path);
-        if (!files.exists()) {
-            if (isAbsolutePath(path)) {
-                System.out.println("文件：" + files.getPath() + "  不存在！！！");
-            } else {
-                System.out.println("文件：" + System.getProperty("user.dir") + "\\" + files.getPath() + "  不存在！！！");
-            }
+        if (files == null) {
             return false;
         }
-
-        if (files.isFile()) {
-            return files.delete();
-        } else {
-            File[] listFiles = files.listFiles();
-            if (listFiles == null) {
-                return false;
-            }
-            for (File file : listFiles) {
-                deleteFile(file.getPath());
+        if (file.isFile() || files.length == 0) {
+            try {
+                Files.delete(Paths.get(path));
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        return files.delete();
+        return false;
     }
 
     /**
@@ -118,19 +114,10 @@ public class FileOperations {
      * @param filName   条件
      */
     public void searchByFileName(String directory, String filName) {
-        if (!isValidFileName(directory)) {
-            System.out.println("目录不合法！！！");
+        if (!isValidExistDirectory(directory)) {
             return;
         }
         File dir = new File(directory);
-        if (!dir.exists()) {
-            System.out.println("目录不存在！！！");
-            return;
-        }
-        if (!dir.isDirectory()) {
-            System.out.println("不是一个目录！！！");
-            return;
-        }
         File[] files = dir.listFiles();
         if (files == null || files.length == 0) {
             return;
@@ -415,7 +402,7 @@ public class FileOperations {
      * @return 所有文件
      */
     private ArrayList<File> setAllFileInDirectory(String directoryPath) {
-        if (!isValidDirectory(directoryPath)) {
+        if (!isValidExistDirectory(directoryPath)) {
             return null;
         }
         File[] files = new File(directoryPath).listFiles();
@@ -460,7 +447,7 @@ public class FileOperations {
      * @return 所有文件
      */
     private ArrayList<File> setAllFileInDirectory(String directoryPath, String fileNameExtension) {
-        if (!isValidDirectory(directoryPath)) {
+        if (!isValidExistDirectory(directoryPath)) {
             return null;
         }
         File[] files = new File(directoryPath).listFiles();
@@ -523,7 +510,7 @@ public class FileOperations {
      *
      * @param directoryPath 目录路径
      */
-    public boolean isValidDirectory(String directoryPath) {
+    private boolean isValidExistDirectory(String directoryPath) {
         if (!isValidFileName(directoryPath)) {
             System.out.println("目录名: " + directoryPath + "  不合法！！！");
             return false;
@@ -539,6 +526,101 @@ public class FileOperations {
         }
         return true;
     }
-    //
+
+    /**
+     * 判断给定的路径是否是一个合法且存在的单个文件
+     *
+     * @param filePath 文件路径
+     */
+    private boolean isValidExistFile(String filePath) {
+        if (!isValidFileOrDirectory(filePath)) {
+            System.out.println("文件名: " + filePath + " 不存在！！");
+            return false;
+        }
+        if (new File(filePath).isDirectory()) {
+            System.out.println(filePath + "  是一个目录，而不是一个文件！！！");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 判断给定的路径是否是一个合法且存在的单个文件或目录
+     *
+     * @param filePath 文件路径
+     */
+    private boolean isValidFileOrDirectory(String filePath) {
+        if (!isValidFileName(filePath)) {
+            System.out.println("文件名: " + filePath + "  不合法！！！");
+            return false;
+        }
+        if (!new File(filePath).exists()) {
+            System.out.println("文件: " + filePath + "  不存在！！！");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 作用：查找文件中的指定内容替换为自定义内容（替换全部）.
+     * <p>
+     * 步骤：读取文件内容，替换的内容和其他内容全都写入新文件，新文件替换源文件。
+     *
+     * @param filePath       文件路径
+     * @param findContent    查找的内容
+     * @param replaceContent 替换内容
+     * @return 是否替换成功？
+     */
+    public boolean isReplaceSucceeded(String filePath, String findContent, String replaceContent) {
+        File file = new File(filePath);
+        BufferedReader reader;
+        BufferedWriter writer = null;
+        String filename = file.getName();
+        File tmpFile = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+            // tmpFile为缓存文件，代码运行完毕后此文件将重命名为源文件名字。
+            tmpFile = new File(file.getParentFile().getAbsolutePath() + "\\" + filename + ".tmp");
+            writer = new BufferedWriter(new FileWriter(tmpFile));
+
+            while (true) {
+                String lineContent;
+                lineContent = reader.readLine();
+                if (lineContent == null)
+                    break;
+                if (lineContent.contains(findContent)) {
+                    String newContent = lineContent.replace(findContent, replaceContent);
+                    writer.write(newContent + "\n");
+                } else {
+                    writer.write(lineContent + "\n");
+                }
+            }
+
+            if (file.delete()) {
+                if (tmpFile.renameTo(new File(file.getAbsolutePath()))) {
+                    System.out.println("内容全部替换成功！");
+                    return true;
+                }
+            } else {
+                System.out.println("删除源失败");
+            }
+        } catch (Exception e) {
+            assert tmpFile != null;
+            if (tmpFile.delete()) {
+                System.out.println("替换失败，已删除临时文件!");
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                assert writer != null;
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
 
 }
