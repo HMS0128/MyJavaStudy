@@ -447,7 +447,6 @@ public class FileOperations {
      * @return 所有文件
      */
     public ArrayList<File> getAllFileInDirectory(String directoryPath, String fileNameExtension) {
-        String str = "";
         ArrayList<File> result = setAllFileInDirectory(directoryPath, fileNameExtension);
         allFileInDirectory = new ArrayList<>();
         return result;

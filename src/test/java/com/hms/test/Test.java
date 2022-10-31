@@ -16,18 +16,16 @@ public class Test {
 //
 //        fo.appendFile("F:\\HMS\\Desktop\\hello.txt", "hello");
 //
-        ArrayList<File> arrayList = fo.getAllFileInDirectory("F:\\HMS\\Desktop","java");
+        ArrayList<File> arrayList = fo.getAllFileInDirectory("F:\\HMS\\Desktop");
         for (File file : arrayList) {
             System.out.println(file.getAbsolutePath());
         }
 
-//        ArrayList<File> arrayList1 = fo.getAllFileInDirectory("F:\\HMS\\Desktop");
-//        for (File file : arrayList1) {
-//            System.out.println(file.getAbsolutePath());
-//        }
-        /**
-         * allFileInDirectory 变量销毁
-         */
+        ArrayList<File> arrayList1 = fo.getAllFileInDirectory("F:\\HMS\\Desktop");
+        for (File file : arrayList) {
+            System.out.println(file.getAbsolutePath());
+        }
+
 //        File file=new File("E:\\file.doc");
 //        String fileName=file.getName();
 //        String fileTyle=fileName.substring(fileName.lastIndexOf(".")+1);
