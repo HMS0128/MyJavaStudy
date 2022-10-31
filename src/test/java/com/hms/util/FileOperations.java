@@ -10,8 +10,10 @@ import java.util.ArrayList;
  */
 public class FileOperations {
 
-    // final修饰的引用数据类型不能改变引用地址，但可以改变引用的内容。
-    private final ArrayList<File> allFileInDirectory = new ArrayList<>();
+    /**
+     * 获取指定目录下的文件及子孙目录下的文件（排除所有文件夹本身）。
+     */
+    private ArrayList<File> allFileInDirectory = new ArrayList<>();
 
     /**
      * 作用：复制单个文件或复制整个文件夹的内容(使用缓存字节流)
@@ -412,7 +414,7 @@ public class FileOperations {
      * @param directoryPath 目录位置
      * @return 所有文件
      */
-    public ArrayList<File> getAllFileInDirectory(String directoryPath) {
+    private ArrayList<File> setAllFileInDirectory(String directoryPath) {
         if (!isValidDirectory(directoryPath)) {
             return null;
         }
@@ -423,7 +425,7 @@ public class FileOperations {
         }
         for (File file : files) {
             if (file.isDirectory()) {
-                getAllFileInDirectory(file.getAbsolutePath());
+                setAllFileInDirectory(file.getAbsolutePath());
             } else {
                 allFileInDirectory.add(file);
             }
@@ -431,6 +433,11 @@ public class FileOperations {
         return allFileInDirectory;
     }
 
+    public ArrayList<File> getAllFileInDirectory(String directoryPath) {
+        ArrayList<File> result = setAllFileInDirectory(directoryPath);
+        allFileInDirectory = new ArrayList<>();
+        return result;
+    }
 
     /**
      * 获取指定目录下的文件及子孙目录下的文件中是指定拓展名的文件。
@@ -440,6 +447,20 @@ public class FileOperations {
      * @return 所有文件
      */
     public ArrayList<File> getAllFileInDirectory(String directoryPath, String fileNameExtension) {
+        String str = "";
+        ArrayList<File> result = setAllFileInDirectory(directoryPath, fileNameExtension);
+        allFileInDirectory = new ArrayList<>();
+        return result;
+    }
+
+    /**
+     * 获取指定目录下的文件及子孙目录下的文件中是指定拓展名的文件。
+     *
+     * @param directoryPath     目录位置
+     * @param fileNameExtension 文件拓展名
+     * @return 所有文件
+     */
+    private ArrayList<File> setAllFileInDirectory(String directoryPath, String fileNameExtension) {
         if (!isValidDirectory(directoryPath)) {
             return null;
         }
@@ -450,7 +471,7 @@ public class FileOperations {
         }
         for (File file : files) {
             if (file.isDirectory()) {
-                getAllFileInDirectory(file.getAbsolutePath(), fileNameExtension);
+                setAllFileInDirectory(file.getAbsolutePath(), fileNameExtension);
             } else {
                 String fileName = file.getName();
                 if (fileName.substring(fileName.lastIndexOf(".") + 1).equals(fileNameExtension)) {
@@ -519,4 +540,6 @@ public class FileOperations {
         }
         return true;
     }
+
+
 }

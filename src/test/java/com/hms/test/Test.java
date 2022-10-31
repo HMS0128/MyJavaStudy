@@ -3,6 +3,7 @@ package com.hms.test;
 
 import com.hms.util.FileOperations;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class Test {
@@ -15,17 +16,22 @@ public class Test {
 //
 //        fo.appendFile("F:\\HMS\\Desktop\\hello.txt", "hello");
 //
-        ArrayList<ArrayList<String>> arrayList = fo.findContentByDirectory("E:\\HMS", "main", "java");
-        for (ArrayList<String> arrS : arrayList) {
-            for (String str : arrS) {
-                //System.out.println(str);
-            }
+        ArrayList<File> arrayList = fo.getAllFileInDirectory("F:\\HMS\\Desktop","java");
+        for (File file : arrayList) {
+            System.out.println(file.getAbsolutePath());
         }
+
+//        ArrayList<File> arrayList1 = fo.getAllFileInDirectory("F:\\HMS\\Desktop");
+//        for (File file : arrayList1) {
+//            System.out.println(file.getAbsolutePath());
+//        }
+        /**
+         * allFileInDirectory 变量销毁
+         */
 //        File file=new File("E:\\file.doc");
 //        String fileName=file.getName();
 //        String fileTyle=fileName.substring(fileName.lastIndexOf(".")+1);
-//        System.out.println(fileTyle);
-
+//        System.out.println(fileTyle);E:\HMS\Study\Java\Code\demo1\src\main\license\License.java
 
 
     }
