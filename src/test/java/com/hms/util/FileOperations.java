@@ -25,22 +25,20 @@ public class FileOperations {
      */
     public boolean copy(String sourcePath, String targetPath) {
         try {
-            if (!(isValidFileName(sourcePath) && isValidFileName(targetPath))) {
-                System.out.println("文件名不合法！！！");
+            if (!isValidExist(sourcePath)) {
+                System.out.println("源文件路径不是合法存在的！！！");
+                return false;
+            }
+            if (!isValidFileName(targetPath)) {
+                System.out.println("目标文件路径不合法！！！");
                 return false;
             }
 
             File source = new File(sourcePath);
-            File target = new File(targetPath);
-
-            if (source.exists()) {
-                if (!isAbsolutePath(sourcePath)) {
-                    source = new File(source.getAbsolutePath());
-                }
-            } else {
-                System.out.println("文件：" + source + "  不存在！！！");
-                return false;
+            if (!isAbsolutePath(sourcePath)) {
+                source = new File(source.getAbsolutePath());
             }
+            File target = new File(targetPath);
 
             // 源是文件夹时，目标认定为文件夹。源是单个文件时，目标认定为单个文件
             if (source.isDirectory()) {
@@ -48,7 +46,6 @@ public class FileOperations {
             } else if (source.isFile()) {
                 copyFile(source, target);
             }
-
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,36 +54,59 @@ public class FileOperations {
     }
 
     /**
-     * 删除文件或文件夹
+     * 删除单个文件或整个文件夹（可以删除非空文件夹）
      *
-     * @param path 单个文件路径或文件夹路径
+     * @param path 文件或文件件路径
      * @return 是否删除成功
      */
-    public boolean deleteFile(String path) {
-
-        File file = new File(path);
-        File[] files = null;
-
-        if (file.isDirectory()) {
-            files = file.listFiles();
-            assert files != null;
-            for (File f : files) {
-                deleteFile(f.getAbsolutePath());
-            }
-        }
-
-        if (files == null) {
-            return false;
-        }
-        if (file.isFile() || files.length == 0) {
-            try {
+    public boolean delete(String path) {
+        try {
+            if (isValidExistDirectory(path)) {
+                return deleteFolder(path);
+            } else if (isValidExistFile(path)) {
                 Files.delete(Paths.get(path));
                 return true;
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * 删除文件夹(可以删除非空文件夹)。
+     * <p>
+     * 思路：
+     * 1、递归遍历目录及子孙目录，是空目录删除，是文件删除，文件都删除完成后再删除其父目录空文件夹。
+     *
+     * @param path 单个文件路径或文件夹路径
+     */
+    private boolean deleteFolder(String path) {
+        if (!isValidExist(path)) {
+            return false;
+        }
+        try {
+            while (true) {
+                File[] files = new File(path).listFiles();
+                if (files == null) {
+                    break;
+                }
+                if (files.length == 0) {
+                    Files.delete(Paths.get(path));
+                }
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteFolder(file.getAbsolutePath());
+                    } else if (file.isFile()) {
+                        Files.delete(Paths.get(file.getAbsolutePath()));
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -100,7 +120,7 @@ public class FileOperations {
      */
     public boolean cut(String source, String target) {
         if (copy(source, target)) {
-            return deleteFile(source);
+            //return deleteFile(source);
         }
         return false;
     }
@@ -117,8 +137,7 @@ public class FileOperations {
         if (!isValidExistDirectory(directory)) {
             return;
         }
-        File dir = new File(directory);
-        File[] files = dir.listFiles();
+        File[] files = new File(directory).listFiles();
         if (files == null || files.length == 0) {
             return;
         }
@@ -533,7 +552,7 @@ public class FileOperations {
      * @param filePath 文件路径
      */
     private boolean isValidExistFile(String filePath) {
-        if (!isValidFileOrDirectory(filePath)) {
+        if (!isValidExist(filePath)) {
             System.out.println("文件名: " + filePath + " 不存在！！");
             return false;
         }
@@ -549,7 +568,7 @@ public class FileOperations {
      *
      * @param filePath 文件路径
      */
-    private boolean isValidFileOrDirectory(String filePath) {
+    private boolean isValidExist(String filePath) {
         if (!isValidFileName(filePath)) {
             System.out.println("文件名: " + filePath + "  不合法！！！");
             return false;
