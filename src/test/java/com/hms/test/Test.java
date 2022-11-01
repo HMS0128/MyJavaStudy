@@ -4,7 +4,7 @@ package com.hms.test;
 import com.hms.util.FileOperations;
 
 public class Test {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         //fo.copy("src", "1");
         //fo.cut("1", "F:\\HMS\\Desktop\\a");
@@ -25,14 +25,16 @@ public class Test {
 
         long startTime = System.nanoTime();   //获取开始时间
 
+
         FileOperations fo = new FileOperations();
-        System.out.println(fo.delete("a"));
-
+        //System.out.println(fo.replaceSucceeded("", "", ""));
+        //fo.delete( "F:\\HMS\\Desktop\\b\\a");
+        fo.cut("F:\\HMS\\Desktop\\a","F:\\HMS\\Desktop\\c");
+       // System.out.println(fo.delete("F:\\HMS\\Desktop\\b"));
         long endTime = System.nanoTime(); //获取结束时间
-        System.out.println("程序运行耗时： " + (endTime - startTime) + "毫秒！");
-        //while: 17454400毫秒！ 18148900毫秒！ 16742200毫秒！ 18827500毫秒！22605800毫秒！
-        //if: 17137300毫秒！ 17552900毫秒！17353600毫秒！17016500毫秒！24313700毫秒！
 
+        //Files.delete(Paths.get("F:\\HMS\\Desktop\\b\\a\\MyJavaStudy\\.git\\objects\\3a\\a83f28e488a9908ece35e09c4d961677d66b7d"));
+        System.out.println("程序运行耗时： " + (endTime - startTime) / 1000000 + "毫秒");
 
     }
 
