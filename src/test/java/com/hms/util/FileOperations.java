@@ -13,7 +13,8 @@ public class FileOperations {
     /**
      * 获取指定目录下的文件及子孙目录下的文件（排除所有文件夹本身）。
      */
-    private ArrayList<File> allFileInDirectory = new ArrayList<>();
+    private  ArrayList<File> allFileInDirectory = new ArrayList<>();
+
 
     /**
      * 作用：复制单个文件或复制整个文件夹的内容(使用缓存字节流)
@@ -64,7 +65,7 @@ public class FileOperations {
             if (isValidExistDirectory(path)) {
                 return deleteFolder(path);
             } else if (isValidExistFile(path)) {
-                return forceDelete(path);
+                return deleteFile(path);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -73,32 +74,33 @@ public class FileOperations {
     }
 
     /**
-     * 删除指定文件
+     * 删除文件或空文件夹
      *
      * @param filePath 文件路径
+     * @return 删除是否成功
      */
-    public boolean forceDelete(String filePath) {
+    public boolean deleteFile(String filePath) {
 
-        if (!isValidExistFile(filePath)) {
+        if (!isValidExist(filePath)) {
             return false;
         }
+
         if (!isAbsolutePath(filePath)) {
             filePath = System.getProperty("user.dir") + "\\" + filePath;
         }
         try {
-            Files.delete(Paths.get(filePath));
-        } catch (IOException e) {
-            e.printStackTrace();
-            String command = "cmd.exe /C del /F " + filePath;
+             Files.delete(Paths.get(filePath));
+        } catch (Exception e) {
+             String  command = "cmd.exe /C del /F " + filePath;
             try {
                 Runtime.getRuntime().exec(command);
-                System.out.println("强制删除文件：" + filePath);
-            } catch (IOException ioException) {
+                System.out.println("强制删除文件：" + filePath + " ，命令：" + command);
+                Thread.sleep(5000);
+            } catch (Exception ioException) {
                 ioException.printStackTrace();
             }
         }
-
-        return isValidExistFile(filePath);
+        return !isValidExistFile(filePath);
     }
 
     /**
@@ -113,31 +115,21 @@ public class FileOperations {
         if (!isValidExist(path)) {
             return false;
         }
-        try {
-            while (true) {
-                File[] files = new File(path).listFiles();
-                if (files == null) {
-                    break;
-                }
-                if (files.length == 0) {
-                    Files.delete(Paths.get(path));
-                }
-                for (File file : files) {
-                    if (file.isDirectory()) {
-                        deleteFolder(file.getAbsolutePath());
-                    } else if (file.isFile()) {
-                        try {
-                            Files.delete(Paths.get(file.getAbsolutePath()));
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            forceDelete(file.getAbsolutePath());
-                        }
-                    }
+        while (true) {
+            File[] files = new File(path).listFiles();
+            if (files == null) {
+                break;
+            }
+            if (files.length == 0) {
+                deleteFile(path);
+            }
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteFolder(file.getAbsolutePath());
+                } else if (file.isFile()) {
+                    deleteFile(file.getAbsolutePath());
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
         }
         return true;
     }
@@ -638,7 +630,7 @@ public class FileOperations {
                 }
             }
 
-            if (file.delete()) {
+            if (deleteFile(filePath)) {
                 if (tmpFile.renameTo(new File(file.getAbsolutePath()))) {
                     System.out.println("内容全部替换成功！");
                     return true;
