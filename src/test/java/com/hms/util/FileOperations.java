@@ -13,7 +13,7 @@ public class FileOperations {
     /**
      * 获取指定目录下的文件及子孙目录下的文件（排除所有文件夹本身）。
      */
-    private  ArrayList<File> allFileInDirectory = new ArrayList<>();
+    private ArrayList<File> allFileInDirectory = new ArrayList<>();
 
 
     /**
@@ -89,13 +89,13 @@ public class FileOperations {
             filePath = System.getProperty("user.dir") + "\\" + filePath;
         }
         try {
-             Files.delete(Paths.get(filePath));
+            Files.delete(Paths.get(filePath));
         } catch (Exception e) {
-             String  command = "cmd.exe /C del /F " + filePath;
+            e.printStackTrace();
+            String command = "cmd.exe /C del /F " + filePath;
             try {
                 Runtime.getRuntime().exec(command);
                 System.out.println("强制删除文件：" + filePath + " ，命令：" + command);
-                Thread.sleep(5000);
             } catch (Exception ioException) {
                 ioException.printStackTrace();
             }
@@ -559,10 +559,7 @@ public class FileOperations {
         if (!dir.exists()) {
             return false;
         }
-        if (dir.isFile()) {
-            return false;
-        }
-        return true;
+        return !dir.isFile();
     }
 
     /**
@@ -574,10 +571,7 @@ public class FileOperations {
         if (!isValidExist(filePath)) {
             return false;
         }
-        if (new File(filePath).isDirectory()) {
-            return false;
-        }
-        return true;
+        return !new File(filePath).isDirectory();
     }
 
     /**
@@ -589,10 +583,7 @@ public class FileOperations {
         if (!isValidFileName(filePath)) {
             return false;
         }
-        if (!new File(filePath).exists()) {
-            return false;
-        }
-        return true;
+        return new File(filePath).exists();
     }
 
     /**
@@ -607,7 +598,7 @@ public class FileOperations {
      */
     public boolean replaceSucceeded(String filePath, String findContent, String replaceContent) {
         File file = new File(filePath);
-        BufferedReader reader;
+        BufferedReader reader = null;
         BufferedWriter writer = null;
         String filename = file.getName();
         File tmpFile = null;
@@ -616,42 +607,39 @@ public class FileOperations {
             // tmpFile为缓存文件，代码运行完毕后此文件将重命名为源文件名字。
             tmpFile = new File(file.getParentFile().getAbsolutePath() + "\\" + filename + ".tmp");
             writer = new BufferedWriter(new FileWriter(tmpFile));
-
-            while (true) {
-                String lineContent;
-                lineContent = reader.readLine();
-                if (lineContent == null)
-                    break;
+            String lineContent;
+            int i = 0;
+            while ((lineContent = reader.readLine()) != null) {
+                i++;
                 if (lineContent.contains(findContent)) {
                     String newContent = lineContent.replace(findContent, replaceContent);
                     writer.write(newContent + "\n");
+                    System.out.println("第 " + i + " 行，字符：" + findContent + " 被替换为：" + replaceContent);
                 } else {
                     writer.write(lineContent + "\n");
                 }
             }
-
-            if (deleteFile(filePath)) {
-                if (tmpFile.renameTo(new File(file.getAbsolutePath()))) {
-                    System.out.println("内容全部替换成功！");
-                    return true;
-                }
-            } else {
-                System.out.println("删除源失败");
-            }
         } catch (Exception e) {
             assert tmpFile != null;
             if (tmpFile.delete()) {
-                System.out.println("替换失败，已删除临时文件!");
+                System.out.println("操作失败，已删除临时文件!");
             }
             e.printStackTrace();
             return false;
         } finally {
             try {
-                assert writer != null;
-                writer.close();
+                if (reader != null) {
+                    reader.close();
+                }
+                if (writer != null) {
+                    writer.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+        if (deleteFile(filePath)) {
+            return tmpFile.renameTo(new File(file.getAbsolutePath()));
         }
         return false;
     }
