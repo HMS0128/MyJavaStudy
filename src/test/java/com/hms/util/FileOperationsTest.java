@@ -12,6 +12,7 @@ public class FileOperationsTest {
 
     @Test
     public void delete() {
+        fo.delete("hello");
     }
 
     @Test
