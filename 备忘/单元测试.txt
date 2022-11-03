@@ -1,0 +1,14 @@
+【快速生成单元测试类】
+1、选择java源文件，鼠标移动到类名上
+
+2、快捷键 ctrl+shift+t ，选择 Create New Test
+
+3、选择 junit4 ，选择要测试的方法。
+
+4、在测试类的测试方法中调用源类方法。
+
+5、运行测试方法或类。
+如果要使用Java Flight Recorder（监视工具，应用程序执行期间收集有关Java虚拟机中特定时间实例中事件（数据片段）的信息），
+虚拟机选项需更改为： -XX:+UnlockCommercialFeatures
+使用 Java Flight Recorder运行类或方法，
+在底部 Profiler 可查看已运行时长，一定时间后（推荐5min），点击Stop Profiling and Show Results,即可查看火焰图。
