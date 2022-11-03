@@ -28,7 +28,7 @@
     </appender>
 
     <!-- 最低日志输出级别 -->
-    <root level="DEBUG">
+    <root level="ERROR">
         <!-- 作用于下列 appender（附加器）：appender标签，属性name的值 -->
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>

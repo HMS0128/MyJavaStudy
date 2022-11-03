@@ -270,7 +270,7 @@ public class FileOperations {
      * @param filePath 文件名
      * @return 文件名是否合法
      */
-    private boolean isValidFileName(String filePath) {
+    public boolean isValidFileName(String filePath) {
 
         // Windows10 以前版本对最大路径限制为260个字符，Windows10可以修改注册表取消最大路径限制
         if (filePath == null || filePath.trim().length() == 0 || filePath.length() > 255) {
@@ -551,7 +551,7 @@ public class FileOperations {
      *
      * @param directoryPath 目录路径
      */
-    private boolean isValidExistDirectory(String directoryPath) {
+    public boolean isValidExistDirectory(String directoryPath) {
         if (!isValidFileName(directoryPath)) {
             return false;
         }
@@ -567,7 +567,7 @@ public class FileOperations {
      *
      * @param filePath 文件路径
      */
-    private boolean isValidExistFile(String filePath) {
+    public boolean isValidExistFile(String filePath) {
         if (!isValidExist(filePath)) {
             return false;
         }
