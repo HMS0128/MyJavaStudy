@@ -12,15 +12,17 @@ public class FileOperationsTest {
 
     @Test
     public void delete() {
-        fo.delete("hello");
+        fo.delete("temp");
     }
 
     @Test
     public void deleteFile() {
+        fo.deleteFile("hello/src/main/resources/conf/logback.xml");
     }
 
     @Test
     public void cut() {
+        fo.cut("hello","temp");
     }
 
     @Test
