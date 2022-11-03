@@ -1,41 +1,74 @@
 package com.hms.other;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.util.StatusPrinter;
+import com.hms.util.FileOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
 
 public class LogbackDemo {
 
     public static Logger LOG1 = LoggerFactory.getLogger(LogbackDemo.class);
     public static Logger LOG2 = LoggerFactory.getLogger("记录器2");
     public static Logger LOG3 = LoggerFactory.getLogger("记录器3");
-//    public static void main(String[] args) {
-//        long startTime = System.nanoTime();   //获取开始时间
-//        System.out.println("----------------------------------------------开始----------------------------------------------");
-//
-//        test();
-//
-//        System.out.println("----------------------------------------------结束----------------------------------------------");
-//        long endTime = System.nanoTime(); //获取结束时间
-//        System.out.println("程序运行耗时： " + (endTime - startTime) / 1000000 + "毫秒");
-//    }
+
 
     public static void test() {
         // Logger记录器，getLogger(记录器名称)
-
+        LOG1.trace("主程序的trace");
         LOG1.debug("主程序的debug");
         LOG1.info("主程序的info");
         LOG1.warn("主程序的warn");
         LOG1.error("主程序的error");
 
+        LOG2.trace("oneInfo的trace");
         LOG2.debug("oneInfo的debug");
         LOG2.info("oneInfo的info");
         LOG2.warn("oneInfo的warn");
         LOG2.error("oneInfo的error");
 
+        LOG2.trace("twoInfo的trace");
         LOG3.debug("twoInfo的debug");
         LOG3.info("twoInfo的info");
         LOG3.warn("twoInfo的warn");
         LOG3.error("twoInfo的error");
+
+    }
+
+    /**
+     * 指定配置文件位置
+     */
+    public static void loadLogbackConfig() {
+        // 记录器上下文实例
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
+        // 配置文件位置。获取项目打包后，resources目录下的logback.xml文件位置，去除开头的多余字符 "file:/"
+        String configFilePath = String.valueOf(LogbackDemo.class.getClassLoader().getResource("conf/logback.xml"));
+        configFilePath = configFilePath.substring(6);
+
+        // 配置文件
+        File configFile = new File(configFilePath);
+
+        if (new FileOperations().isValidExistFile(configFilePath)) {
+            // 配置器
+            JoranConfigurator configurator = new JoranConfigurator();
+            // 设置上下文
+            configurator.setContext(lc);
+            // 清除记录器上下文内部属性
+            lc.reset();
+            try {
+                // 指定文件为配置文件
+                configurator.doConfigure(configFile.getPath());
+            } catch (JoranException e) {
+                e.printStackTrace();
+            }
+            // 打印上下文状态的内容，但前提是它们包含警告或错误。
+            StatusPrinter.printInCaseOfErrorsOrWarnings(lc);
+        }
+
     }
 }
 
