@@ -40,15 +40,20 @@ public class LogbackDemo {
     }
 
     /**
-     * 指定配置文件位置
+     * 自定义配置文件位置
      */
     public static void loadLogbackConfig() {
-        // 记录器上下文实例
-        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
-        // 配置文件位置。获取项目打包后，resources目录下的logback.xml文件位置，去除开头的多余字符 "file:/"
+        /*
+            示例：指定配置文件位置为未编译时resources目录下的 conf/logback.xml
+            1、项目打包后 classes目录下包含java编译后文件（包变目录形式）和resources目录下所有文件。
+            2、先获取classes目录位置，再获取classes目录下的conf/logback.xml文件路径，
+            3、去除获取的结果中开头的多余字符 "file:/"
+         */
         String configFilePath = String.valueOf(LogbackDemo.class.getClassLoader().getResource("conf/logback.xml"));
         configFilePath = configFilePath.substring(6);
 
+        // 记录器上下文实例
+        LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         // 配置文件
         File configFile = new File(configFilePath);
 
