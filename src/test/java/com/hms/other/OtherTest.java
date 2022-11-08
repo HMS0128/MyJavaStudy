@@ -1,32 +1,35 @@
 package com.hms.other;
 
-import com.hms.socket.client.Client;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
 public class OtherTest {
-    public static void main(String[] args) throws Exception {
-        System.out.print("输入：");
-        //test();
-        System.out.print("-------------------------------------------------聊天室-------------------------------------------------");
+    // T1、T2、T3三个线程顺序执行
+    public static void main(String[] args) {
+        Thread t1 = new Thread(new Work(null));
+        Thread t2 = new Thread(new Work(t1));
+        Thread t3 = new Thread(new Work(t2));
+        t1.start();
+        t2.start();
+        t3.start();
+
     }
 
-    public static void test() {
-        InputStream inputStream = System.in;
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-        String content = null;
-        try {
-            content = bufferedReader.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
+    static class Work implements Runnable {
+        private Thread beforeThread;
+
+        public Work(Thread beforeThread) {
+            this.beforeThread = beforeThread;
         }
-        if (content != null && content.trim().length() == 0) {
-            test();
-        } else {
-            System.out.println("发送的内容是：" + content);
+
+        public void run() {
+            if (beforeThread != null) {
+                try {
+                    beforeThread.join();
+                    System.out.println("线程启动:" + Thread.currentThread().getName());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("线程启动:" + Thread.currentThread().getName());
+            }
         }
     }
 }

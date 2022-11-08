@@ -1,0 +1,30 @@
+一、开启读写
+new BufferedReader(new InputStreamReader(socket.getInputStream()));
+new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+二、关闭读写
+socket.shutdownInput();
+socket.shutdownOutput();
+
+当一方写入完成后，调用shutdownOutput关闭输出流，这时候对方的read方法就会返回-1，这时候对方就知道你写完了，对方可以关闭输入流，
+然后等待对方写入完成调用shutdownOutput后己方再调用shutdownInput，双方就正常关闭了输入输出流，这时候socket就不会出现异常了。
+
+三、常见异常
+
+【java.net.SocketException:socket is closed】
+错误提示的出现场景：
+自己主动关闭了socket，但是之后还从里面读写数据
+
+【Software caused connection abort: socket write error】
+错误提示的出现场景：
+对方已经关闭socket，依旧向对方写数据
+
+【connection reset (by peer)】
+错误提示出现的场景：
+一端socket被关闭，另一端仍然发送数据，发送的第一个数据包 connection reset by peer
+一端socket退出，退出时为关闭连接，另一端读数据 connection reset
+
+【其他】
+                // 主线程等待子线程完成
+//                clientRead.join();
+//                clientWrite.join();
